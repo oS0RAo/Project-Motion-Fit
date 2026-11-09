@@ -1,106 +1,76 @@
-using UnityEngine;
+๏ปฟusing UnityEngine;
 using TMPro;
 
 public class TennisUIManager : MonoBehaviour
 {
     public static TennisUIManager Instance;
 
-    [Header("Connection Panels")]
-    // หน้าต่างเริ่มต้นที่มีปุ่ม "สร้างห้อง" หรือ "เข้าห้อง"
-    public GameObject connectionPanel;
-    // หน้าต่างรีโมตบนมือถือ
-    public GameObject mobileRemotePanel;
-    // ช่องกรอกรหัสห้องบนหน้าจอมือถือ
-    public TMP_InputField roomCodeInput;
-
-    [Header("Host HUD (จอหลัก)")]
-    // ข้อความแสดงสถานะระบบ
-    public TextMeshProUGUI statusText;
-    // ข้อความแสดงคะแนนของผู้เล่นเทียบกับบอท
+    [Header("Gameplay HUD (เธเธญเธซเธฅเธฑเธ)")]
+    // เธเนเธญเธเธงเธฒเธกเนเธชเธ”เธเธเธฐเนเธเธ
     public TextMeshProUGUI scoreText;
-    // ข้อความแสดงสถิติย่อย เช่น จำนวนการตีโต้ และแคลอรีที่เผาผลาญ
+    // เธเนเธญเธเธงเธฒเธกเนเธชเธ”เธเธชเธ–เธดเธ•เธดเธขเนเธญเธข เน€เธเนเธ เธเธณเธเธงเธเธเธฒเธฃเธ•เธตเนเธ•เน เนเธฅเธฐเนเธเธฅเธญเธฃเธตเธ—เธตเนเน€เธเธฒเธเธฅเธฒเธ
     public TextMeshProUGUI statsText;
-    // ข้อความป๊อปอัปเด้งเตือนชั่วคราวกลางจอ เช่น "PERFECT SMASH!", "OUT!"
+    // เธเนเธญเธเธงเธฒเธกเธเนเธญเธเธญเธฑเธเน€เธ”เนเธเน€เธ•เธทเธญเธเธเธฑเนเธงเธเธฃเธฒเธงเธเธฅเธฒเธเธเธญ เน€เธเนเธ "PERFECT SMASH!", "OUT!"
     public TextMeshProUGUI popupFeedbackText;
 
-    // ตัวจับเวลาสำหรับซ่อนข้อความป๊อปอัป
+    // เธ•เธฑเธงเธเธฑเธเน€เธงเธฅเธฒเธชเธณเธซเธฃเธฑเธเธเนเธญเธเธเนเธญเธเธงเธฒเธกเธเนเธญเธเธญเธฑเธ
     private float _popupTimer;
 
     void Awake()
     {
         Instance = this;
-
-        // ซ่อนหน้าจอกดรีโมตของมือถือไว้ก่อนตั้งแต่เริ่มเกม
-        if (mobileRemotePanel != null) mobileRemotePanel.SetActive(false);
     }
 
-    // Update ทำงานทุกๆ เฟรมภาพ
+    // Update เธ—เธณเธเธฒเธเธ—เธธเธเน เน€เธเธฃเธกเธ เธฒเธ
     void Update()
     {
-        // ระบบนับถอยหลังเพื่อซ่อนข้อความ Popup
+        // เธฃเธฐเธเธเธเธฑเธเธ–เธญเธขเธซเธฅเธฑเธเน€เธเธทเนเธญเธเนเธญเธเธเนเธญเธเธงเธฒเธก Popup
         if (_popupTimer > 0)
         {
-            _popupTimer -= Time.deltaTime; // ลดเวลาลงตามเวลาจริงที่ผ่านไป
+            _popupTimer -= Time.deltaTime; // เธฅเธ”เน€เธงเธฅเธฒเธฅเธเธ•เธฒเธกเน€เธงเธฅเธฒเธเธฃเธดเธเธ—เธตเนเธเนเธฒเธเนเธ
 
-            // เมื่อเวลาหมดให้ล้างข้อความทิ้ง
+            // เน€เธกเธทเนเธญเน€เธงเธฅเธฒเธซเธกเธ”เนเธซเนเธฅเนเธฒเธเธเนเธญเธเธงเธฒเธกเธ—เธดเนเธ
             if (_popupTimer <= 0 && popupFeedbackText != null)
                 popupFeedbackText.text = "";
         }
     }
 
-    // ฟังก์ชันถูกเรียกเมื่อกดปุ่ม "Start Host" บนหน้าจอหลัก
-    public void OnClickStartHost(TennisNetworkBootstrapper bootstrapper)
+    // เธเธฑเธเธเนเธเธฑเธเธชเธณเธซเธฃเธฑเธเธชเธฑเนเธเธญเธฑเธเน€เธ”เธ•เธเธฐเนเธเธเธเธเธเธญ
+    public void UpdateScoreBoard(int p1Score, int p2Score, int rally, float calories)
     {
-        // ซ่อนหน้าต่างเมนูเริ่มต้น
-        connectionPanel.SetActive(false);
-        // แสดงข้อความบอกให้รู้ว่าสร้างห้องชื่ออะไร และกำลังรอให้มือถือเข้ามาเชื่อมต่อ
-        statusText.text = $"ROOM CODE: {bootstrapper.defaultRoomCode}\nWaiting for Mobile Controller...";
-
-        // สั่งให้ Bootstrapper ทำการเปิดห้องในฐานะ Host
-        bootstrapper.StartHostScreen();
-    }
-
-    // ฟังก์ชันถูกเรียกเมื่อกดปุ่ม "Join Room" บนหน้าจอมือถือ
-    public void OnClickJoinMobile(TennisNetworkBootstrapper bootstrapper)
-    {
-        // ซ่อนหน้าต่างเมนูเริ่มต้น
-        connectionPanel.SetActive(false);
-        // เปิดหน้าต่างสำหรับให้มือถือใช้เป็นจอยสติ๊ก
-        if (mobileRemotePanel != null) mobileRemotePanel.SetActive(true);
-
-        // ดึงชื่อห้องจากช่องกรอก หากไม่ได้กรอกอะไรมา ให้ใช้ค่าเริ่มต้น (defaultRoomCode)
-        string code = roomCodeInput != null && !string.IsNullOrEmpty(roomCodeInput.text)
-                      ? roomCodeInput.text.ToUpper() // แปลงเป็นตัวพิมพ์ใหญ่ทั้งหมดป้องกันการพิมพ์ผิด
-                      : bootstrapper.defaultRoomCode;
-
-        // อัปเดตข้อความบนมือถือว่าเชื่อมต่อห้องสำเร็จแล้ว ให้จับมือถือแน่นๆ
-        statusText.text = $"Connected to Room: {code}\nGrip your phone tightly!";
-
-        // สั่งให้ Bootstrapper ทำการเชื่อมต่อเข้าห้องในฐานะ Client
-        bootstrapper.JoinFromMobile(code);
-    }
-
-    // ฟังก์ชันสำหรับให้สคริปต์อื่น (เช่น TennisPlayerAvatar) สั่งอัปเดตคะแนนบนจอ
-    public void UpdateScoreBoard(int playerScore, int aiScore, int rally, float calories)
-    {
-        // จัดรูปแบบข้อความคะแนนตรงกลางจอ
         if (scoreText != null)
-            scoreText.text = $"PLAYER  {playerScore}  -  {aiScore}  BOT";
+        {
+            // เธเธณเธซเธเธ”เธเธทเนเธญเธ—เธตเธกเน€เธฃเธดเนเธกเธ•เนเธ
+            string leftTeam = "A";
+            string rightTeam = "B";
 
-        // จัดรูปแบบข้อความสถิติ (โชว์จำนวนครั้งที่โต้ลูก และจำกัดจุดทศนิยมแคลอรี 2 ตำแหน่งด้วย :F2)
+            // เธ•เธฃเธงเธเธชเธญเธเนเธซเธกเธ”เธเธฑเธเธเธธเธเธฑเธเน€เธเธทเนเธญเน€เธเธฅเธตเนเธขเธเธเนเธฒเธขเธเธทเนเธญเนเธซเนเน€เธซเธกเธฒเธฐเธชเธก
+            if (TennisNetworkBootstrapper.Instance != null)
+            {
+                int mode = TennisNetworkBootstrapper.Instance.currentMode;
+                if (mode == 0) { leftTeam = "Player"; rightTeam = "BOT"; }        // เนเธซเธกเธ” 0: 1v1 เธเธฑเธเธเธญเธ—
+                else if (mode == 1) { leftTeam = "TEAM A"; rightTeam = "BOT TEAM"; }   // เนเธซเธกเธ” 1: 2v2 เธเธฑเธเธเธญเธ—
+                else if (mode == 2) { leftTeam = "Player1"; rightTeam = "Player2"; }         // เนเธซเธกเธ” 2: 1v1 เธ”เธงเธฅเธเธฑเธเน€เธญเธ
+                else if (mode == 3) { leftTeam = "TEAM A"; rightTeam = "TEAM B"; }     // เนเธซเธกเธ” 3: 2v2 เธ”เธงเธฅเธเธฑเธเน€เธญเธ
+            }
+
+            scoreText.text = $"{leftTeam}  {p1Score}  -  {p2Score}  {rightTeam}";
+        }
+
+        // เธเธฑเธ”เธฃเธนเธเนเธเธเธเนเธญเธเธงเธฒเธกเธชเธ–เธดเธ•เธด เนเธเธงเนเธเธณเธเธงเธเธเธฃเธฑเนเธเธ—เธตเนเนเธ•เนเธฅเธนเธ เนเธฅเธฐเธเธณเธเธฑเธ”เธเธธเธ”เธ—เธจเธเธดเธขเธกเนเธเธฅเธญเธฃเธต 2 เธ•เธณเนเธซเธเนเธ
         if (statsText != null)
             statsText.text = $"RALLY: {rally} Hits\nBURN: {calories:F2} kcal";
     }
 
-    // ฟังก์ชันสำหรับแสดงข้อความป๊อปอัปกลางจอ (รับคำสั่งมาจากลูกเทนนิสผ่านเครือข่าย)
+    // เธเธฑเธเธเนเธเธฑเธเธชเธณเธซเธฃเธฑเธเนเธชเธ”เธเธเนเธญเธเธงเธฒเธกเธเนเธญเธเธญเธฑเธเธเธฅเธฒเธเธเธญ
     public void ShowPopup(string message, Color color)
     {
-        if (popupFeedbackText == null) return; // ป้องกันบัคถ้าไม่ได้ลาก UI มาใส่
+        if (popupFeedbackText == null) return;
 
-        popupFeedbackText.text = message; // เปลี่ยนข้อความ
-        popupFeedbackText.color = color;  // เปลี่ยนสี (เช่น เขียว=Perfect, แดง=ออก, ฟ้า=ได้แต้ม)
+        popupFeedbackText.text = message;
+        popupFeedbackText.color = color;
 
-        // ตั้งเวลาให้แสดงค้างไว้ 1.5 วินาทีก่อนจะถูกฟังก์ชัน Update() ลบทิ้ง
+        // เธ•เธฑเนเธเน€เธงเธฅเธฒเนเธซเนเนเธชเธ”เธเธเนเธฒเธเนเธงเน 1.5 เธงเธดเธเธฒเธ—เธตเธเนเธญเธเธเธฐเธ–เธนเธเธเธฑเธเธเนเธเธฑเธ Update() เธฅเธเธ—เธดเนเธ
         _popupTimer = 1.5f;
     }
 }
